@@ -6,20 +6,21 @@ The project is built in layers. A milestone is complete only when its core failu
 
 **Outcome:** a Kubernetes cluster that can be destroyed and reconstructed from code.
 
-1. Proxmox cloud-init template
+1. Confirm Proxmox storage supports cloud-image import
 2. Least-privilege API token
 3. OpenTofu provider configuration
 4. Reusable VM module
-5. Control-plane VM
-6. Worker VMs
-7. Ansible inventory
-8. Linux baseline role
-9. containerd
-10. Kubernetes prerequisites
-11. kubeadm bootstrap
-12. Cilium
-13. Smoke-test workload
-14. Full destroy/rebuild test
+5. Import Ubuntu cloud image through OpenTofu
+6. Control-plane VM
+7. Worker VMs
+8. Ansible inventory
+9. Linux baseline role
+10. containerd
+11. Kubernetes prerequisites
+12. kubeadm bootstrap
+13. Cilium
+14. Smoke-test workload
+15. Full destroy/rebuild test
 
 ### Exit criteria
 
