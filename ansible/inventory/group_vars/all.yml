@@ -18,3 +18,6 @@ cluster_hosts:
     name: k8s-w01
   - ip: 192.168.1.203
     name: k8s-w02
+
+# Current Kubernetes minor used by this homelab.
+kubernetes_minor_version: "1.37"
