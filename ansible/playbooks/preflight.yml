@@ -7,36 +7,40 @@
     - name: Verify supported operating system
       ansible.builtin.assert:
         that:
-          - ansible_distribution == "Ubuntu"
-          - ansible_distribution_version is version("24.04", ">=")
+          - ansible_facts["distribution"] == "Ubuntu"
+          - ansible_facts["distribution_version"] is version("24.04", ">=")
         fail_msg: >-
           Expected Ubuntu 24.04 or newer, got
-          {{ ansible_distribution }} {{ ansible_distribution_version }}.
+          {{ ansible_facts["distribution"] }}
+          {{ ansible_facts["distribution_version"] }}.
 
     - name: Verify node has at least 2 GiB RAM
       ansible.builtin.assert:
         that:
-          - ansible_memtotal_mb >= 2000
-        fail_msg: "Node has only {{ ansible_memtotal_mb }} MiB RAM."
+          - ansible_facts["memtotal_mb"] >= 2000
+        fail_msg: >-
+          Node has only {{ ansible_facts["memtotal_mb"] }} MiB RAM.
 
     - name: Verify swap is disabled
       ansible.builtin.assert:
         that:
-          - ansible_swaptotal_mb == 0
+          - ansible_facts["swaptotal_mb"] == 0
         fail_msg: "Swap must be disabled before Kubernetes bootstrap."
 
     - name: Verify expected IPv4 address
       ansible.builtin.assert:
         that:
-          - ansible_default_ipv4.address == expected_ip
+          - ansible_facts["default_ipv4"]["address"] == expected_ip
         fail_msg: >-
-          Expected {{ expected_ip }}, got {{ ansible_default_ipv4.address }}.
+          Expected {{ expected_ip }}, got
+          {{ ansible_facts["default_ipv4"]["address"] }}.
 
     - name: Display validated node
       ansible.builtin.debug:
         msg: >-
           {{ inventory_hostname }} validated:
-          {{ ansible_distribution }} {{ ansible_distribution_version }},
-          IP={{ ansible_default_ipv4.address }},
-          RAM={{ ansible_memtotal_mb }} MiB,
-          swap={{ ansible_swaptotal_mb }} MiB
+          {{ ansible_facts["distribution"] }}
+          {{ ansible_facts["distribution_version"] }},
+          IP={{ ansible_facts["default_ipv4"]["address"] }},
+          RAM={{ ansible_facts["memtotal_mb"] }} MiB,
+          swap={{ ansible_facts["swaptotal_mb"] }} MiB
