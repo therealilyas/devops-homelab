@@ -64,8 +64,8 @@ The first milestone deliberately stays small. CI/CD, GitOps, observability and s
 
 - [x] Create public GitHub repository
 - [x] Establish architecture and engineering standards
-- [ ] Create Ubuntu cloud-init template in Proxmox
-- [ ] Create least-privilege Proxmox API credentials
+- [x] Confirm Proxmox storage supports cloud-image import
+- [x] Create least-privilege Proxmox API credentials
 - [ ] Configure OpenTofu provider
 - [ ] Build reusable Proxmox VM module
 - [ ] Provision `k8s-cp01`
@@ -136,7 +136,7 @@ Directories are introduced as the corresponding milestone is implemented rather 
 
 **Phase 1: Proxmox → OpenTofu**
 
-The next engineering task is to create a cloud-init-ready Ubuntu template and provision the first VM through OpenTofu.
+The next engineering task is to run OpenTofu from an admin workstation, import the Ubuntu cloud image into Proxmox, and provision the first Kubernetes VM.
 
 ## Security
 
