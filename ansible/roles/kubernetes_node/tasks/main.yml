@@ -1,0 +1,162 @@
+---
+- name: Install container runtime and Kubernetes repository prerequisites
+  ansible.builtin.apt:
+    name:
+      - containerd
+      - ca-certificates
+      - curl
+      - gpg
+    state: present
+    update_cache: true
+
+- name: Persist required kernel modules
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/k8s.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      overlay
+      br_netfilter
+  notify: Apply Kubernetes sysctl settings
+
+- name: Load overlay module
+  ansible.builtin.command:
+    cmd: modprobe overlay
+  changed_when: false
+
+- name: Load br_netfilter module
+  ansible.builtin.command:
+    cmd: modprobe br_netfilter
+  changed_when: false
+
+- name: Configure Kubernetes networking sysctls
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-kubernetes-cri.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      net.bridge.bridge-nf-call-iptables  = 1
+      net.bridge.bridge-nf-call-ip6tables = 1
+      net.ipv4.ip_forward                 = 1
+  notify: Apply Kubernetes sysctl settings
+
+- name: Read containerd version
+  ansible.builtin.command:
+    cmd: containerd --version
+  register: containerd_version
+  changed_when: false
+
+- name: Determine containerd major version
+  ansible.builtin.set_fact:
+    containerd_major_version: >-
+      {{
+        (
+          containerd_version.stdout
+          | regex_search('[0-9]+\.[0-9]+\.[0-9]+')
+        ).split('.')[0] | int
+      }}
+
+- name: Ensure containerd configuration directory exists
+  ansible.builtin.file:
+    path: /etc/containerd
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure containerd for Kubernetes
+  ansible.builtin.template:
+    src: config.toml.j2
+    dest: /etc/containerd/config.toml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart containerd
+
+- name: Ensure containerd is enabled and running
+  ansible.builtin.service:
+    name: containerd
+    enabled: true
+    state: started
+
+- name: Ensure APT keyrings directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Download Kubernetes repository signing key
+  ansible.builtin.get_url:
+    url: "https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_minor_version }}/deb/Release.key"
+    dest: /etc/apt/keyrings/kubernetes-release.key
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Create Kubernetes APT keyring
+  ansible.builtin.command:
+    cmd: >-
+      gpg --dearmor --yes
+      -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+      /etc/apt/keyrings/kubernetes-release.key
+  args:
+    creates: /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+
+- name: Configure Kubernetes package repository
+  ansible.builtin.copy:
+    dest: /etc/apt/sources.list.d/kubernetes.list
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v{{ kubernetes_minor_version }}/deb/ /
+
+- name: Install Kubernetes node packages
+  ansible.builtin.apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: present
+    update_cache: true
+
+- name: Hold kubelet package
+  ansible.builtin.dpkg_selections:
+    name: kubelet
+    selection: hold
+
+- name: Hold kubeadm package
+  ansible.builtin.dpkg_selections:
+    name: kubeadm
+    selection: hold
+
+- name: Hold kubectl package
+  ansible.builtin.dpkg_selections:
+    name: kubectl
+    selection: hold
+
+- name: Enable kubelet service
+  ansible.builtin.service:
+    name: kubelet
+    enabled: true
+
+- name: Flush handlers before verification
+  ansible.builtin.meta: flush_handlers
+
+- name: Verify IPv4 forwarding
+  ansible.builtin.command:
+    cmd: sysctl -n net.ipv4.ip_forward
+  register: ipv4_forward
+  changed_when: false
+  failed_when: ipv4_forward.stdout != "1"
+
+- name: Verify containerd service is active
+  ansible.builtin.command:
+    cmd: systemctl is-active containerd
+  register: containerd_active
+  changed_when: false
+  failed_when: containerd_active.stdout != "active"
