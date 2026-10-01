@@ -27,12 +27,6 @@
     enabled: true
     state: started
 
-- name: Enable and start QEMU guest agent
-  ansible.builtin.service:
-    name: qemu-guest-agent
-    enabled: true
-    state: started
-
 - name: Add managed Kubernetes host mappings
   ansible.builtin.blockinfile:
     path: /etc/hosts
