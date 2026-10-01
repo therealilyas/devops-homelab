@@ -50,3 +50,30 @@ tofu apply
 Storage import capability is confirmed on `local`.
 
 Do not run `tofu apply` until the Proxmox API identity, SSH public key and static addresses have been verified.
+
+
+## Shell-specific API token setup
+
+### fish
+
+```fish
+read -s -P "Proxmox token secret: " PVE_TOKEN_SECRET
+echo
+set -gx PROXMOX_VE_API_TOKEN "terraform@pve!devopslab=$PVE_TOKEN_SECRET"
+set -e PVE_TOKEN_SECRET
+```
+
+Verify without printing the secret:
+
+```fish
+test -n "$PROXMOX_VE_API_TOKEN"; and echo "Token loaded"
+```
+
+### bash / zsh
+
+```bash
+read -rsp "Proxmox token secret: " PVE_TOKEN_SECRET
+echo
+export PROXMOX_VE_API_TOKEN="terraform@pve!devopslab=${PVE_TOKEN_SECRET}"
+unset PVE_TOKEN_SECRET
+```
