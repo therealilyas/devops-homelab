@@ -21,3 +21,7 @@ cluster_hosts:
 
 # Current Kubernetes minor used by this homelab.
 kubernetes_minor_version: "1.37"
+
+# Non-overlapping Kubernetes networks.
+kubernetes_pod_cidr: "10.244.0.0/16"
+kubernetes_service_cidr: "10.96.0.0/12"
