@@ -1,0 +1,35 @@
+---
+- name: Verify kubeadm bootstrap before CNI installation
+  hosts: k8s_control_plane
+  gather_facts: false
+
+  tasks:
+    - name: Get Kubernetes nodes
+      ansible.builtin.command:
+        cmd: kubectl get nodes -o wide
+      environment:
+        KUBECONFIG: /home/devops/.kube/config
+      register: kubectl_nodes
+      changed_when: false
+
+    - name: Display Kubernetes nodes
+      ansible.builtin.debug:
+        var: kubectl_nodes.stdout_lines
+
+    - name: Verify exactly three nodes are registered
+      ansible.builtin.assert:
+        that:
+          - kubectl_nodes.stdout_lines | length == 4
+        fail_msg: "Expected header plus three Kubernetes nodes."
+
+    - name: Get system pods
+      ansible.builtin.command:
+        cmd: kubectl get pods -n kube-system -o wide
+      environment:
+        KUBECONFIG: /home/devops/.kube/config
+      register: kube_system_pods
+      changed_when: false
+
+    - name: Display kube-system pods
+      ansible.builtin.debug:
+        var: kube_system_pods.stdout_lines
