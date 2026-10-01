@@ -8,7 +8,7 @@ This directory provisions the first Kubernetes VMs on the `pve` node.
 |---|---|
 | Proxmox node | `pve` |
 | API endpoint | `https://192.168.1.107:8006/` |
-| Cloud image datastore | `local` |
+| Cloud image datastore | `local` — `import` content type confirmed |
 | VM disk datastore | `local-lvm` |
 | Bridge | `vmbr0` |
 | Control plane VM ID | `201` |
@@ -47,4 +47,6 @@ tofu plan
 tofu apply
 ```
 
-Do not run `tofu apply` until the Proxmox API identity, storage import capability, SSH public key and static addresses have been verified.
+Storage import capability is confirmed on `local`.
+
+Do not run `tofu apply` until the Proxmox API identity, SSH public key and static addresses have been verified.
